@@ -8,11 +8,20 @@ on:
     - cron: '0 11 * * *'  # 4:30 PM IST
     - cron: '0 14 * * *'  # 7:30 PM IST
     - cron: '0 17 * * *'  # 10:30 PM IST
+    - cron: '0 20 * * *'  # 1:30 AM IST
+    - cron: '0 23 * * *'  # 4:30 AM IST
   workflow_dispatch:
+
+# Never let two runs fight over the same push.
+concurrency:
+  group: daily-commit
+  cancel-in-progress: false
 
 jobs:
   commit:
     runs-on: ubuntu-latest
+    # Fail fast instead of burning 15 min when GitHub can't hand us a runner.
+    timeout-minutes: 5
     permissions:
       contents: write
 
@@ -21,14 +30,27 @@ jobs:
         env:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-      - name: Update timestamp
-        run: |
-          echo "Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" > last_updated.txt
-
       - name: Commit and push
         run: |
           git config user.name "vignesh2027"
           git config user.email "applemacbook6sep2004@gmail.com"
-          git add last_updated.txt
-          git commit -m "chore: update $(date -u '+%Y-%m-%d %H:%M')"
-          git push
+
+          # Retry: a racing run may push first, leaving us non-fast-forward.
+          for attempt in 1 2 3 4 5; do
+            echo "Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" > last_updated.txt
+            git add last_updated.txt
+            # --allow-empty so a green square still lands if the file is unchanged.
+            git commit --allow-empty -m "chore: update $(date -u '+%Y-%m-%d %H:%M')"
+
+            if git push; then
+              echo "pushed on attempt $attempt"
+              exit 0
+            fi
+
+            echo "push failed, rebasing and retrying ($attempt/5)"
+            git pull --rebase origin main
+            sleep $((attempt * 5))
+          done
+
+          echo "could not push after 5 attempts"
+          exit 1

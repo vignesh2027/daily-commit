@@ -2,14 +2,20 @@ name: Daily Commit
 
 on:
   schedule:
-    - cron: '0 2 * * *'   # 7:30 AM IST
-    - cron: '0 5 * * *'   # 10:30 AM IST
-    - cron: '0 8 * * *'   # 1:30 PM IST
-    - cron: '0 11 * * *'  # 4:30 PM IST
-    - cron: '0 14 * * *'  # 7:30 PM IST
-    - cron: '0 17 * * *'  # 10:30 PM IST
-    - cron: '0 20 * * *'  # 1:30 AM IST
-    - cron: '0 23 * * *'  # 4:30 AM IST
+    # every two hours: twelve chances a day for a green square, so a
+    # GitHub-side runner outage has to last a very long time to cost a day
+    - cron: '0 0 * * *'   # 05:30 IST
+    - cron: '0 2 * * *'   # 07:30 IST
+    - cron: '0 4 * * *'   # 09:30 IST
+    - cron: '0 6 * * *'   # 11:30 IST
+    - cron: '0 8 * * *'   # 13:30 IST
+    - cron: '0 10 * * *'   # 15:30 IST
+    - cron: '0 12 * * *'   # 17:30 IST
+    - cron: '0 14 * * *'   # 19:30 IST
+    - cron: '0 16 * * *'   # 21:30 IST
+    - cron: '0 18 * * *'   # 23:30 IST
+    - cron: '0 20 * * *'   # 01:30 IST
+    - cron: '0 22 * * *'   # 03:30 IST
   workflow_dispatch:
 
 # Never let two runs fight over the same push.
